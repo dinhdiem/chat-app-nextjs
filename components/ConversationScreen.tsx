@@ -110,22 +110,19 @@ const ConversationScreen = ({
   const { recipientEmail, recipient } = useRecipient(conversationUsers);
 
   const router = useRouter();
-  const conversationId = router.query.id; // localhost:3000/conversations/:id
-
+  const conversationId = router.query.id;
   const queryGetMessages = generateQueryGetMessages(conversationId as string);
 
   const [messagesSnapshot, messagesLoading, __error] =
     useCollection(queryGetMessages);
 
   const showMessages = () => {
-    // If front-end is loading messages behind the scenes, display messages retrieved from Next SSR (passed down from [id].tsx)
     if (messagesLoading) {
       return messages.map((message) => (
         <Message key={message.id} message={message} />
       ));
     }
 
-    // If front-end has finished loading messages, so now we have messagesSnapshot
     if (messagesSnapshot) {
       return messagesSnapshot.docs.map((message) => (
         <Message key={message.id} message={transformMessage(message)} />
@@ -136,16 +133,14 @@ const ConversationScreen = ({
   };
 
   const addMessageToDbAndUpdateLastSeen = async () => {
-    // update last seen in 'users' collection
     await setDoc(
       doc(db, "users", loggedInUser?.email as string),
       {
         lastSeen: serverTimestamp(),
       },
       { merge: true }
-    ); // just update what is changed
+    );
 
-    // add new message to 'messages' collection
     await addDoc(collection(db, "messages"), {
       conversation_id: conversationId,
       sent_at: serverTimestamp(),
@@ -153,10 +148,8 @@ const ConversationScreen = ({
       user: loggedInUser?.email,
     });
 
-    // reset input field
     setNewMessage("");
 
-    // scroll to bottom
     scrollToBottom();
   };
 
@@ -212,11 +205,9 @@ const ConversationScreen = ({
 
       <StyledMessageContainer>
         {showMessages()}
-        {/* for auto scroll to the end when a new message is sent */}
         <EndOfMessagesForAutoScroll ref={endOfMessagesRef} />
       </StyledMessageContainer>
 
-      {/* Enter new message */}
       <StyledInputContainer>
         <InsertEmoticonIcon />
         <StyledInput
