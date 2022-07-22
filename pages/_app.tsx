@@ -18,7 +18,7 @@ function MyApp({ Component, pageProps }: AppProps) {
           {
             email: loggedInUser?.email,
             lastSeen: serverTimestamp(),
-            phonURL: loggedInUser?.photoURL,
+            photoURL: loggedInUser?.photoURL,
           },
           { merge: true }
         );

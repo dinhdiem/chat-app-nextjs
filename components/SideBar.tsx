@@ -8,6 +8,7 @@ import MoveVertIcon from "@mui/icons-material/MoreVert";
 import { signOut } from "firebase/auth";
 import { auth, db } from "../config/firebase";
 import * as EmailValidator from "email-validator";
+import { useCollection } from "react-firebase-hooks/firestore";
 import {
   Dialog,
   DialogTitle,
@@ -17,7 +18,9 @@ import {
   DialogActions,
 } from "@mui/material";
 import { useAuthState } from "react-firebase-hooks/auth";
-import { addDoc, collection } from "firebase/firestore";
+import { addDoc, collection, query, where } from "firebase/firestore";
+import { Conversation } from "../types";
+import ConversationSelect from "./ConversationSelect";
 
 type Props = {};
 
@@ -39,9 +42,26 @@ const SideBar = (props: Props) => {
     toggleNewDialog(false);
   };
 
+  const queryGetConversationUser = query(
+    collection(db, "conversations"),
+    where("users", "array-contains", loggedInUser?.email)
+  );
+
+  const [conversationSnapshot] = useCollection(queryGetConversationUser);
+
+  const isConversationAlreadyExists = (writeEmail: string) => {
+    return conversationSnapshot?.docs.find((conversation) =>
+      (conversation.data() as Conversation).users.includes(writeEmail)
+    );
+  };
+
   const createConversation = async () => {
     if (!writeEmail) return;
-    if (EmailValidator.validate(writeEmail) && !isInvitingSelf) {
+    if (
+      EmailValidator.validate(writeEmail) &&
+      !isInvitingSelf &&
+      !isConversationAlreadyExists(writeEmail)
+    ) {
       await addDoc(collection(db, "conversations"), {
         users: [loggedInUser?.email, writeEmail],
       });
@@ -63,12 +83,6 @@ const SideBar = (props: Props) => {
           <StyledUserAvatar src={loggedInUser?.photoURL || ""} />
         </Tooltip>
         <div>
-          <IconButton>
-            <ChatIcon />
-          </IconButton>
-          <IconButton>
-            <MoveVertIcon />
-          </IconButton>
           <IconButton onClick={logout}>
             <LogoutIcon />
           </IconButton>
@@ -85,6 +99,13 @@ const SideBar = (props: Props) => {
       >
         Thêm người liên hệ
       </StyledSideBarButton>
+      {conversationSnapshot?.docs.map((item) => (
+        <ConversationSelect
+          key={item.id}
+          id={item.id}
+          conversationUsers={(item.data() as Conversation).users}
+        />
+      ))}
       <Dialog open={isOpenNew} onClose={closeDialog}>
         <DialogTitle>Thêm liên hệ</DialogTitle>
         <DialogContent>
@@ -114,9 +135,15 @@ const SideBar = (props: Props) => {
 };
 
 const StyleContainer = styled.div`
+  ::-webkit-scrollbar {
+    display: none;
+  }
+  /* Hide scrollbar for IE, Edge and Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
   height: 100vh;
-  min-width: 250px;
-  max-width: 300px;
+  min-width: 300px;
+  max-width: 350px;
   overflow-y: scroll;
   border-right: 1px solid whitesmoke;
 `;
