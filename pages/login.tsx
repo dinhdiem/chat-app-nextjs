@@ -3,7 +3,7 @@ import React from "react";
 import styled from "styled-components";
 import Image from "next/image";
 import Button from "@mui/material/Button";
-import avatarLogin from "../assets/avatarlogin.jpg";
+import avatarLogin from "../assets/whatsapplogo.png";
 import { useSignInWithGoogle } from "react-firebase-hooks/auth";
 import { auth } from "../config/firebase";
 
