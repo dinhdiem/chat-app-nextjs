@@ -1,6 +1,6 @@
 import styled from "styled-components";
 import Image from "next/image";
-import avatarLogin from "../assets/avatarlogin.jpg";
+import avatarLogin from "../assets/whatsapplogo.jpg";
 import { CircularProgress } from "@mui/material";
 
 const Container = styled.div`
